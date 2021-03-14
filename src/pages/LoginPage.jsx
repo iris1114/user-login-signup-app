@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import { useHistory } from "react-router";
 import styled from "styled-components";
 import UserLoginSignUpTab from "../components/users/UserLoginSIgnUpTab";
 import { getLogin } from "../utils/api";
+import AuthContext from "../utils/context";
 import jwt from "jwt-decode";
 
-const LoginPage = ({ onLoggedIn }) => {
+const LoginPage = () => {
   const history = useHistory();
 
   const defaultData = {
@@ -15,9 +16,8 @@ const LoginPage = ({ onLoggedIn }) => {
   };
 
   const [loginData, setLoginData] = useState(defaultData);
-  const [isLogin, setIsLogin] = useState(false);
-  const [authToken, setAuthToken] = useState("");
   const [editable, setEditable] = useState(true);
+  const { authData,setAuthData } = useContext(AuthContext);
 
   const handleAccountChange = (e) => {
     setLoginData({
@@ -37,11 +37,19 @@ const LoginPage = ({ onLoggedIn }) => {
     getLogin(loginData)
       .then((res) => {
         alert(`message: ${res.data.message}`);
-        console.log("token",jwt(res.data.result.authToken));
 
-        setAuthToken(res.data.result.authToken);
+        const jwtData = jwt(res.data.result.authToken);
+        console.log({jwtData});
+
+        setAuthData({
+          token: res.data.result.authToken,
+          name: jwtData.name,
+          memberId: jwtData.memberId,
+        });
+        
+        localStorage.setItem("authToken", res.data.result.authToken);
+
         if (res.data.code === "SUCCESS") {
-          setIsLogin(true);
           history.push(`/users`);
         }
       })
@@ -49,10 +57,6 @@ const LoginPage = ({ onLoggedIn }) => {
         console.log(error);
       });
   };
-
-  useEffect(() => {
-    onLoggedIn(isLogin, loginData, authToken);
-  }, [onLoggedIn, loginData, isLogin, authToken]);
 
   useEffect(() => {
     if (loginData.account && loginData.password) {
@@ -64,8 +68,8 @@ const LoginPage = ({ onLoggedIn }) => {
 
   return (
     <StyledLoginPage>
-      {isLogin && <div>已登入</div>}
-      {!isLogin && (
+      {authData && <div>已登入</div>}
+      {!authData && (
         <div className="container text-center">
           <UserLoginSignUpTab variant="login-active" />
 
@@ -78,7 +82,7 @@ const LoginPage = ({ onLoggedIn }) => {
               value={loginData.account}
             />
             <input
-              type="text"
+              type="password"
               className="form-control w-50 mb-5 mx-auto"
               placeholder="密碼"
               onChange={handlePasswordChange}

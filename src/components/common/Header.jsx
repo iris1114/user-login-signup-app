@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Navbar, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import AuthContext from "../../utils/context";
 
-const Header = ({ isLogin, loginData, onLogout }) => {
+const Header = () => {
+  const { authData, setAuthData } = useContext(AuthContext);
+
   const handleLogoutClick = () => {
-    onLogout();
+    setAuthData(null);
   };
 
   return (
@@ -15,11 +18,11 @@ const Header = ({ isLogin, loginData, onLogout }) => {
 
       <Navbar.Toggle />
       <Navbar.Collapse className="justify-content-end">
-        {isLogin ? (
+        {authData ? (
           <div>
             <Navbar.Text className="mr-3">
               Signed in as:
-              <Link to={"/"}>{loginData.account}</Link>
+              <Link to={`/users/${authData.memberId}`}>{authData.name}</Link>
             </Navbar.Text>
 
             <Button variant="outline-info" onClick={handleLogoutClick}>

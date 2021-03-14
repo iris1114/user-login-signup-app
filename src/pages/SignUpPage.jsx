@@ -40,7 +40,7 @@ const SignUpPage = () => {
     getSignUp(signUpData)
       .then((res) => {
         if (res.data.code === "SUCCESS") {
-          history.push(`users/`); // 需取得userId
+          history.push(`users/`); 
         } else {
           alert(`message: ${res.data.message}`);
           setSignUpData(defaultData);
@@ -80,7 +80,7 @@ const SignUpPage = () => {
             value={signUpData.username}
           />
           <input
-            type="text"
+            type="password"
             className="form-control w-50 mb-5 mx-auto"
             placeholder="密碼"
             onChange={handleSignUpPassword}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import { useHistory, useParams } from "react-router";
 import styled from "styled-components";
@@ -7,15 +7,16 @@ import UserImage from "../components/users/UserImage";
 import useUser from "../hooks/users/useUser";
 import defaultProfileImg from "../images/defaultProfile.png";
 import { getDeleteUser, getUpdateUser } from "../utils/api";
+import AuthContext from "../utils/context";
 import ErrorPage from "./ErrorPage";
 
-const UserPage = ({ isLogin, authToken, onUpdateAuthToken }) => {
+const UserPage = () => {
   const userId = useParams();
   const history = useHistory();
   const { initUser, loading, error } = useUser(userId);
   const [editable, setEditable] = useState(false);
   const [user, setUser] = useState(initUser);
-  const [newToken, setNewToken] = useState(authToken);
+  const { authData } = useContext(AuthContext);
 
   useEffect(() => {
     setUser(initUser);
@@ -27,13 +28,11 @@ const UserPage = ({ isLogin, authToken, onUpdateAuthToken }) => {
 
   const handleDeleteClick = () => {
     alert("Are you sure you want to delete it?");
-    getDeleteUser(userId, authToken)
+    getDeleteUser(userId, authData.token)
       .then((res) => {
         if (res.data.code !== "SUCCESS") {
           alert("刪除失敗， 你無權限刪除。");
         } else {
-          setNewToken("");
-          onUpdateAuthToken(newToken);
           history.push("/");
         }
       })
@@ -46,7 +45,7 @@ const UserPage = ({ isLogin, authToken, onUpdateAuthToken }) => {
   const handleNameChange = (e) => {
     setUser({
       ...user,
-      username: e.target.value
+      username: e.target.value,
     });
   };
 
@@ -57,7 +56,7 @@ const UserPage = ({ isLogin, authToken, onUpdateAuthToken }) => {
     reader.onloadend = () => {
       setUser({
         ...user,
-        picture_url: reader.result
+        picture_url: reader.result,
       });
     };
     reader.readAsDataURL(file);
@@ -66,7 +65,7 @@ const UserPage = ({ isLogin, authToken, onUpdateAuthToken }) => {
   const handleDescChange = (e) => {
     setUser({
       ...user,
-      description: e.target.value
+      description: e.target.value,
     });
   };
 
@@ -76,7 +75,7 @@ const UserPage = ({ isLogin, authToken, onUpdateAuthToken }) => {
   };
 
   const handleSaveClick = () => {
-    getUpdateUser(user, userId, authToken)
+    getUpdateUser(user, userId, authData.token)
       .then((res) => {
         if (res.data.code !== "SUCCESS") {
           alert("需登入後才能編輯，編輯失敗，你無權編輯，請取消。");
@@ -110,23 +109,26 @@ const UserPage = ({ isLogin, authToken, onUpdateAuthToken }) => {
               </div>
 
               <h2 className="f-lg-2xl mb-5">{user && user.username}</h2>
+
               {user && user.description ? (
                 <p className="mb-5">{user && user.description}</p>
               ) : (
                 <p className="mb-5">no description</p>
               )}
-              <div className="d-flex justify-content-center mb-5">
-                <Button
-                  variant="outline-info"
-                  className="btn mr-4"
-                  onClick={handleEditClick}
-                >
-                  編輯
-                </Button>
-                <Button variant="outline-danger" onClick={handleDeleteClick}>
-                  刪除
-                </Button>
-              </div>
+              {authData && user.id === authData.memberId ? (
+                <div className="d-flex justify-content-center mb-5">
+                  <Button
+                    variant="outline-info"
+                    className="btn mr-4"
+                    onClick={handleEditClick}
+                  >
+                    編輯
+                  </Button>
+                  <Button variant="outline-danger" onClick={handleDeleteClick}>
+                    刪除
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )}
 
